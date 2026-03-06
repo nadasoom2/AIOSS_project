@@ -1,5 +1,7 @@
 # Lead Time 측정 GitHub Action 사용 설명서
 
+
+
 ## 이 문서의 목적
 이 문서는 GitHub를 처음 사용하는 사람을 대상으로, 프로젝트에 포함된 Lead Time 측정 자동화 GitHub Action 코드(`.github/workflows/lead-time.yml`)가 무엇인지, 어떻게 작동하는지, 그리고 어떻게 사용하는지를 자세히 설명합니다. 단계별로 따라 하시면 쉽게 이해하실 수 있습니다.
 
