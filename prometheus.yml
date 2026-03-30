@@ -1,0 +1,112 @@
+# Prometheus 설정 파일
+# AIOSS 프로젝트 모니터링 설정
+
+# 전역 설정
+global:
+  # 메트릭 스크래핑 간격 (기본값)
+  scrape_interval: 15s
+  
+  # 스크래프 타임아웃
+  scrape_timeout: 10s
+  
+  # 평가 간격 (규칙 평가 간격)
+  evaluation_interval: 15s
+  
+  # 외부 라벨 (모든 메트릭에 추가)
+  external_labels:
+    monitor: 'aioss-monitoring'
+    environment: 'production'
+    cluster: 'main'
+
+# 알림 관리자 설정 (선택사항)
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+# 규칙 파일 로드 (규칙 파일이 있으면 추가)
+rule_files:
+  # - 'alert_rules.yml'
+  # - 'recording_rules.yml'
+
+# 스크래핑 설정
+scrape_configs:
+  # Prometheus 자체 메트릭
+  - job_name: 'prometheus'
+    # 이 job은 기본적으로 localhost:9090에서 메트릭을 수집합니다.
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Node Exporter (서버 메트릭) - 선택사항
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['localhost:9100']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+
+  # Docker 메트릭 - cadvisor (컨테이너 모니터링)
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['localhost:8080']
+    metrics_path: '/metrics'
+
+  # cAdvisor (Docker 컨테이너 모니터링)
+  - job_name: 'docker'
+    static_configs:
+      - targets: ['localhost:8080']
+    metrics_path: '/containers/'
+
+  # GitHub Deployment Metrics (커스텀)
+  - job_name: 'github-deployments'
+    static_configs:
+      - targets: ['localhost:8888']
+    metrics_path: '/metrics/deployments'
+    scrape_interval: 5m
+    scrape_timeout: 30s
+
+  # MTTR Metrics (커스텀)
+  - job_name: 'mttr-metrics'
+    static_configs:
+      - targets: ['localhost:8888']
+    metrics_path: '/metrics/mttr'
+    scrape_interval: 10m
+    scrape_timeout: 30s
+
+  # 애플리케이션 메트릭 (Spring Boot 등)
+  - job_name: 'application'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['localhost:8080']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+
+  # Elastic (로그 모니터링) - 선택사항
+  - job_name: 'elasticsearch'
+    static_configs:
+      - targets: ['localhost:9200']
+    metrics_path: '/_prometheus/metrics'
+
+  # Redis (캐시 모니터링) - 선택사항
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['localhost:6379']
+
+  # PostgreSQL (데이터베이스 모니터링) - postgres_exporter 필요
+  - job_name: 'postgresql'
+    static_configs:
+      - targets: ['localhost:9187']
+
+  # 서비스 디스커버리 (예: Kubernetes)
+  # - job_name: 'kubernetes-apiservers'
+  #   kubernetes_sd_configs:
+  #     - role: endpoints
+  #   scheme: https
+  #   tls_config:
+  #     ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+  #   bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+  #   relabel_configs:
+  #     - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+  #       action: keep
+  #       regex: default;kubernetes;https

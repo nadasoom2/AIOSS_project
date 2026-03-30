@@ -1,0 +1,50 @@
+# Track deployment success/failure results for Change Failure Rate
+name: Track Deployment Result
+
+on:
+  deployment_status:
+
+jobs:
+  track-result:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log Result
+        run: |
+          STATUS="${{ github.event.deployment_status.state }}"
+          ENVIRONMENT="${{ github.event.deployment.environment }}"
+          DEPLOYMENT_ID="${{ github.event.deployment.id }}"
+          TARGET_URL="${{ github.event.deployment_status.target_url }}"
+
+          echo "Deployment ID: $DEPLOYMENT_ID"
+          echo "Environment: $ENVIRONMENT"
+          echo "Status: $STATUS"
+          echo "Target URL: $TARGET_URL"
+
+          # Branch by deployment status
+          if [ "$STATUS" = "success" ]; then
+            echo "Deployment succeeded"
+          else
+            echo "Deployment failed"
+          fi
+
+      - name: Write CFR Summary
+        run: |
+          STATUS="${{ github.event.deployment_status.state }}"
+          ENVIRONMENT="${{ github.event.deployment.environment }}"
+
+          if [ "$STATUS" = "success" ]; then
+            RESULT="success"
+            FAILED="0"
+            TOTAL="1"
+          else
+            RESULT="failure"
+            FAILED="1"
+            TOTAL="1"
+          fi
+
+          echo "## Change Failure Rate Event" >> $GITHUB_STEP_SUMMARY
+          echo "- Environment: $ENVIRONMENT" >> $GITHUB_STEP_SUMMARY
+          echo "- Result: $RESULT" >> $GITHUB_STEP_SUMMARY
+          echo "- Failed Deployments: $FAILED" >> $GITHUB_STEP_SUMMARY
+          echo "- Total Deployments: $TOTAL" >> $GITHUB_STEP_SUMMARY
+          echo "- Event CFR: $FAILED/$TOTAL" >> $GITHUB_STEP_SUMMARY

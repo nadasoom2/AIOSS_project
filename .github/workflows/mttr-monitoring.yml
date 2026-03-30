@@ -1,0 +1,30 @@
+name: MTTR Monitoring
+
+on:
+  issues:
+    types: [opened, closed, labeled]
+  workflow_dispatch: # 수동 실행 추가
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  track-mttr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5 # v5로 업데이트
+        with:
+          python-version: '3.11'
+
+      # ... 중략 ...
+
+      - name: Upload MTTR metrics
+        uses: actions/upload-artifact@v4 # v4로 업데이트
+        with:
+          name: mttr-metrics
+          path: mttr-metrics.json
